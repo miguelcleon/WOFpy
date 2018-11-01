@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  wofpy-server:
+    build:
+      context: ../
+      dockerfile: ./docker_dev/wofpy-server/Dockerfile
+    volumes:
+      - ../:/usr/src/app:consistent
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: example
+    command: bash -c "./docker_dev/scripts/start-server.sh"
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    links:
+      - mysql
+    networks:
+      - wofpy-net
+
+  mysql:
+    image: mysql:5.6
+    volumes:
+      - ../docker_dev/mysql:/etc/mysql/conf.d:consistent
+      - mysqldbvolume:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+    networks: 
+      - wofpy-net
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysqldbvolume:
+
+networks: 
+  wofpy-net:

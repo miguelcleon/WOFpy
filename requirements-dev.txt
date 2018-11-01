@@ -9,4 +9,12 @@ uwsgi
 geoalchemy-odm2
 # testing
 pytest
+# coding standards
 pycodestyle
+flake8
+flake8-print
+flake8-quotes
+flake8-import-order
+flake8-builtins
+flake8-comprehensions
+flake8-mutable
