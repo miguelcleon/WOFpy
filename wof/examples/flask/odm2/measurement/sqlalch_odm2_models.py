@@ -5,7 +5,8 @@ import wof.models as wof_base
 class Variable(wof_base.BaseVariable):
 
     def __init__(self, v=None,
-                 VarSampleMedium=None, v_unit=None, v_tunit=None, v_timeinterval=None):
+                 VarSampleMedium=None, v_unit=None, v_tunit=None, v_timeinterval=None,
+                 aggregationstatisticCV=None, actiontypeCV=None):
         variable_key = '%s::%s-%s' % (v.VariableCode,
                                       v_unit.UnitsID,
                                       VarSampleMedium)
@@ -18,6 +19,12 @@ class Variable(wof_base.BaseVariable):
         self.DataType = v.VariableTypeCV
         self.Speciation = v.SpeciationCV
         self.VariableUnitsID = v_unit.UnitsID
+        self.DataType = aggregationstatisticCV
+        self.ValueType = actiontypeCV
+        self.GeneralCategory = v.VariableTypeCV
+        
+        self.GeneralCategoryValidate = False
+        self.ValueTypeValidate = False
         if v_unit is not None:
             self.VariableUnits = Unit(v_unit)
         else:

@@ -1,4 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
+import os
+import yaml
 
 from datetime import datetime
 from sqlalchemy import create_engine, distinct, func
@@ -29,10 +31,17 @@ class Odm2Dao(BaseDao):
         self.db_session = scoped_session(sessionmaker(
             autocommit=False, autoflush=False, bind=self.engine))
         #odm2_models.Base.query = self.db_session.query_property()
-
+        # Read in WaterML -> ODM2 CV Mapping
+        with open(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cvmap_wml_1_1.yml'))) as yml:
+            self.yml_dict = yaml.load(yml)
     def __del__(self):
         self.db_session.close()
 # 
+    def get_match(self, cvkey, term):
+        for k, v in self.yml_dict[cvkey].items():
+            if term in v:
+                return k
+        return term
     def get_all_sites(self):
         s_Arr = []
         # s_rArr = self.db_session.query(odm2_models.MeasurementResults,odm2_models.Sites).\
@@ -163,7 +172,15 @@ class Odm2Dao(BaseDao):
                     s = result.SampledMediumCV
                     t = result.TimeAggregationIntervalUnitsObj
                     ti = result.TimeAggregationInterval
-                    w_v = model.Variable(v,s,u,t,ti)
+                    ag = result.AggregationStatisticCV
+                    print('ag')
+                    print(ag)
+                    at = result.FeatureActionObj.ActionObj.ActionTypeCV
+                    w_v = model.Variable(v, s, u, t, ti, ag, at)
+                    # w_v = model.Variable(v,s,u,t,ti)
+                    # w_v.AggregationStatisticCV =  self.get_match('datatype', w_v.DataType)
+                    w_v.DataType = self.get_match('datatype', w_v.DataType)
+                    w_v.SampleMedium = self.get_match('samplemedium', w_v.SampleMedium)
                     v_arr.append(w_v)
         return v_arr
 
