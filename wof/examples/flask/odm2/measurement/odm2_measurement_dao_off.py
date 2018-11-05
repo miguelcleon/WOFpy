@@ -1,6 +1,4 @@
 from __future__ import (absolute_import, division, print_function)
-import os
-import yaml
 
 from datetime import datetime
 from sqlalchemy import create_engine, distinct, func
@@ -8,7 +6,8 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.sql import and_
 
 from dateutil.parser import parse
-
+import os
+import yaml
 from wof.dao import BaseDao
 import wof.examples.flask.odm2.measurement.sqlalch_odm2_models as model
 import odm2api.ODM2.models as odm2_models
@@ -31,56 +30,40 @@ class Odm2Dao(BaseDao):
         self.db_session = scoped_session(sessionmaker(
             autocommit=False, autoflush=False, bind=self.engine))
         #odm2_models.Base.query = self.db_session.query_property()
-        # Read in WaterML -> ODM2 CV Mapping
         with open(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'cvmap_wml_1_1.yml'))) as yml:
             self.yml_dict = yaml.load(yml)
+
     def __del__(self):
         self.db_session.close()
-    
-    def db_check(self):
-        try:
-            self.db_session.query(odm2_models.SamplingFeatures).first()
-        except:
-            self.db_session.rollback()
-        finally:
-            pass
 
     def get_match(self, cvkey, term):
         for k, v in self.yml_dict[cvkey].items():
             if term in v:
                 return k
         return term
+
     def get_all_sites(self):
         s_Arr = []
-        # s_rArr = self.db_session.query(odm2_models.MeasurementResults,odm2_models.Sites).\
-        #     distinct(odm2_models.Sites.SamplingFeatureID).\
-        #     join(odm2_models.FeatureActions).\
-        #     join(odm2_models.Specimens).\
-        #     filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
-        #           odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
-        #            odm2_models.Sites.SamplingFeatureID == odm2_models.RelatedFeatures.RelatedFeatureID).all()
-        s_rArr = self.db_session.query(odm2_models.Sites).\
+        s_rArr = self.db_session.query(odm2_models.MeasurementResults,odm2_models.Sites).\
+            distinct(odm2_models.Sites.SamplingFeatureID).\
             join(odm2_models.FeatureActions).\
-            join(odm2_models.MeasurementResults).\
-            filter(odm2_models.FeatureActions.SamplingFeatureID == odm2_models.Sites.SamplingFeatureID,
-                 odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID).distinct() 
-        # print('site count: ' + str(len(s_rArr)))
+            join(odm2_models.Specimens).\
+            filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
+                   odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
+                   odm2_models.Sites.SamplingFeatureID == odm2_models.RelatedFeatures.RelatedFeatureID).all()
         for s_r in s_rArr:
-            s = model.Site(s_r)
+            s = model.Site(s_r.Sites)
             s_Arr.append(s)
 
         return s_Arr
 
     def get_site_by_code(self, site_code):
         w_s = None
-        print('HEREEEEEEE')
         try:
             s = self.db_session.query(odm2_models.Sites).\
                 filter(odm2_models.Sites.SamplingFeatureCode == site_code).one()
         except:
             s = None
-            print(site_code)
-            print('NO SITE')
         if s is not None:
             w_s = model.Site(s)
 
@@ -183,15 +166,7 @@ class Odm2Dao(BaseDao):
                     s = result.SampledMediumCV
                     t = result.TimeAggregationIntervalUnitsObj
                     ti = result.TimeAggregationInterval
-                    ag = result.AggregationStatisticCV
-                    print('ag')
-                    print(ag)
-                    at = result.FeatureActionObj.ActionObj.ActionTypeCV
-                    w_v = model.Variable(v, s, u, t, ti, ag, at)
-                    # w_v = model.Variable(v,s,u,t,ti)
-                    # w_v.AggregationStatisticCV =  self.get_match('datatype', w_v.DataType)
-                    w_v.DataType = self.get_match('datatype', w_v.DataType)
-                    w_v.SampleMedium = self.get_match('samplemedium', w_v.SampleMedium)
+                    w_v = model.Variable(v,s,u,t,ti)
                     v_arr.append(w_v)
         return v_arr
 
@@ -214,52 +189,48 @@ class Odm2Dao(BaseDao):
 
         site = self.get_site_by_code(site_code)
         if site is None:
-            print('here OMG')
             return None
-        # odm2_models.MeasurementResults.SampledMediumCV
-        # odm2_models.RelatedFeatures.RelatedFeatureID == site.SiteID
-
-        # odm2_models.RelatedFeatures.RelatedFeatureID == site.SiteID
-        # ,
-        # odm2_models.MeasurementResults.SampledMediumCV
-        self.db_check()
+        r = self.db_session.query(odm2_models.MeasurementResults.VariableID.label('vid'),
+                                      odm2_models.MeasurementResults.UnitsID.label('unitid'),
+                                      func.min(odm2_models.Actions.BeginDateTime).label("begindate"),
+                                      func.max(odm2_models.Actions.EndDateTime).label("enddate")).\
+                group_by(odm2_models.MeasurementResults.VariableID,
+                         odm2_models.MeasurementResults.UnitsID).\
+                join(odm2_models.FeatureActions).\
+                join(odm2_models.Actions).\
+                join(odm2_models.SamplingFeatures).\
+                filter(odm2_models.SamplingFeatures.SamplingFeatureCode == site_code,
+                       odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
+                       )
+        #print(len(r.all()))
+        #print('number of values')
+        r = r.all()
+        
         result = self.db_session.query(odm2_models.MeasurementResults).\
+                distinct(odm2_models.MeasurementResults.VariableID,
+                         odm2_models.MeasurementResults.UnitsID).\
                 join(odm2_models.FeatureActions).\
                 join(odm2_models.SamplingFeatures).\
                 filter(odm2_models.SamplingFeatures.SamplingFeatureCode == site_code,
-                       odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID).\
-                       group_by(odm2_models.MeasurementResults.VariableID,
-                     odm2_models.MeasurementResults.ResultID,
-                     odm2_models.Results.ResultID)
-        print('get the results')
-        print(len(result.all()))
-        # print(str(result.statement.compile(dialect=postgresql.dialect())))
+                       odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID)
+        # print(len(result.all()))
         result = result.all()
-        print('number of results')
+        
         r_arr = []
         aff = None
         first_flag = True
-        # for series in result:
-        #     for item in r:
-        print('about to it results')
-        for i in range(len(result)):
-                # print('it result ' + str(result.Resultid))
-                if i == 0:
-                    
-                    aff = self.db_session.query(odm2_models.Affiliations). \
-                    join(odm2_models.ActionBy). \
-                    filter(odm2_models.ActionBy.ActionID == result[i].FeatureActionObj.ActionID).first()  # noqa
-                if aff is not None:
-                    w_r = model.Series(result[i],aff, '2000-01-01T00:00:00', '2018-12-01T00:00:00') #,result[i].BeginDateTime,result[i].EndDateTime
-                else:
-                    w_r = model.Series(result[i],None, '2000-01-01T00:00:00', '2018-12-01T00:00:00') #,result[i].BeginDateTime,result[i].EndDateTime
-                w_r.Variable.DataType = self.get_match('datatype', w_r.Variable.DataType)
-                w_r.Variable.SampleMedium = self.get_match('samplemedium', w_r.Variable.SampleMedium)
-                w_r.SampleMedium = w_r.Variable.SampleMedium
-                print(w_r.Variable)
-                # print(w_r.Definition)
-                r_arr.append(w_r)
-        print('done')
+        for series in result:
+            for item in r:
+                if item.vid == series.VariableID and item.unitid == series.UnitsID:
+                    if first_flag:
+                        first_flag = False
+                        aff = self.db_session.query(odm2_models.Affiliations).\
+                                filter(odm2_models.Affiliations.OrganizationID == series.FeatureActionObj.ActionObj.MethodObj.OrganizationID).first()
+                    w_r = model.Series(series,aff,item.begindate,item.enddate)
+                    w_r.Variable.DataType = self.get_match('datatype', w_r.Variable.DataType)
+                    w_r.Variable.SampleMedium = self.get_match('samplemedium', w_r.Variable.SampleMedium)
+                    w_r.SampleMedium = w_r.Variable.SampleMedium
+                    r_arr.append(w_r)
         return r_arr
 
     def get_series_by_sitecode_and_varcode(self, site_code, var_code):
@@ -267,7 +238,6 @@ class Odm2Dao(BaseDao):
         site = self.get_site_by_code(site_code)
         if site is None:
             return None
-        print('HELLO HELLO')
         r = self.db_session.query(odm2_models.MeasurementResults.VariableID.label('vid'),
                                       odm2_models.MeasurementResults.UnitsID.label('unitid'),
                                       odm2_models.MeasurementResults.SampledMediumCV.label('samplemedium'),
@@ -317,7 +287,7 @@ class Odm2Dao(BaseDao):
         q = self.db_session.query(odm2_models.MeasurementResultValues).\
                     join(odm2_models.MeasurementResults).\
                     join(odm2_models.FeatureActions).\
-                    join(odm2_models.SamplingFeatures).\
+                    join(odm2_models.Specimens).\
                     join(odm2_models.Variables)
         return q
 
@@ -331,58 +301,33 @@ class Odm2Dao(BaseDao):
 
         if (not begin_date_time or not end_date_time):
             try:
-                # print('HERE HERE')
                 q = self.get_specimen_data()
-                print(len(q.all()))
-                print('all spcimen values')
-                print(site_code)
-                print(var_code)
-                q = q.filter(
-                    odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,  # noqa
-                    odm2_models.MeasurementResults.VariableID == odm2_models.Variables.VariableID,
-                    odm2_models.SamplingFeatures.SamplingFeatureCode == site_code,
-                    odm2_models.Variables.VariableCode == var_code). \
-                    order_by(odm2_models.MeasurementResultValues.ValueDateTime)
-                print(len(q.all()))
-                print('number of values')
-                # q.filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
-                    #          odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
-                    #          odm2_models.RelatedFeatures.RelatedFeatureID == site.SiteID,
-                    #          odm2_models.Variables.VariableCode == var_code)
+                q = q.filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
+                             odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
+                             odm2_models.RelatedFeatures.RelatedFeatureID == site.SiteID,
+                             odm2_models.Variables.VariableCode == var_code)
                 if unitid is not None:
                     q = q.filter(odm2_models.MeasurementResults.UnitsID == int(unitid))
                 if samplemedium is not None:
                     q = q.filter(odm2_models.MeasurementResults.SampledMediumCV == samplemedium)
-                print(len(q.all()))
-                print('number of values more filtered')
                 valueResultArr = q.all()
             except:
                 valueResultArr = []
         else:
-            print('parse dates')
             begin_date_time = parse(begin_date_time)
             end_date_time = parse(end_date_time)
-            print(begin_date_time)
-            print(end_date_time)
             try:
-                # print(len(q.all()))
-                # print('all spcimen values')
-                print(site_code)
-                print(var_code)
                 q = self.get_specimen_data()
-                q = q.filter(odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,  # noqa
-                    odm2_models.MeasurementResults.VariableID == odm2_models.Variables.VariableID,
-                    odm2_models.SamplingFeatures.SamplingFeatureCode == site_code,odm2_models.Variables.VariableCode == var_code,
+                q = q.filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
+                             odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
+                             odm2_models.RelatedFeatures.RelatedFeatureID == site.SiteID,
+                             odm2_models.Variables.VariableCode == var_code,
                              odm2_models.MeasurementResultValues.ValueDateTime >= begin_date_time,
-                             odm2_models.MeasurementResultValues.ValueDateTime <= end_date_time).order_by(odm2_models.MeasurementResultValues.ValueDateTime)
-                print(len(q.all()))
-                print('number of values')
+                             odm2_models.MeasurementResultValues.ValueDateTime <= end_date_time)
                 if unitid is not None:
                     q = q.filter(odm2_models.MeasurementResults.UnitsID == int(unitid))
                 if samplemedium is not None:
                     q = q.filter(odm2_models.MeasurementResults.SampledMediumCV == samplemedium)
-                print(len(q.all()))
-                print('number of filtered values')
                 valueResultArr = q.all()
             except:
                 valueResultArr = []

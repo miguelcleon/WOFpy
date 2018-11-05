@@ -199,7 +199,7 @@ class Odm2Dao(BaseDao):
                     s = result.ResultObj.SampledMediumCV
                     t = result.TimeAggregationIntervalUnitsObj
                     ti = result.TimeAggregationInterval
-                    ag = result.ResultObj.AggregationStatisticCV
+                    ag = result.AggregationStatisticCV
                     at = result.ResultObj.FeatureActionObj.ActionObj.ActionTypeCV
                     w_v = model.Variable(v, s, u, t, ti, ag, at)
                     w_v.DataType = self.get_match('datatype', w_v.DataType)
@@ -277,6 +277,8 @@ class Odm2Dao(BaseDao):
             w_r.Variable.SampleMedium = self.get_match('samplemedium', w_r.Variable.SampleMedium)
             w_r.SampleMedium = w_r.Variable.SampleMedium
             r_arr.append(w_r)
+        print('HERE') h
+        print(r_arr)
         return r_arr
 
     def get_series_by_sitecode_and_varcode(self, site_code, var_code):

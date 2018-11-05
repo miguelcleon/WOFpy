@@ -51,7 +51,7 @@ class Variable(wof_base.BaseVariable):
 
 class Site(wof_base.BaseSite):
 
-    def __init__(self, s=None):
+    def __init__(self, s=None, aff=None):
         self.SiteID = s.SamplingFeatureID
         self.Latitude = s.Latitude
         self.Longitude = s.Longitude
@@ -66,7 +66,10 @@ class Site(wof_base.BaseSite):
         sr.SRSName = s.SpatialReferenceObj.SRSName
         sr.Notes = s.SpatialReferenceObj.SRSDescription
         self.LatLongDatum = sr
-
+        if aff is not None:
+            if aff.OrganizationObj.OrganizationTypeCV in ['Government agency', 'Research agency']:
+                self.AgencyName = aff.OrganizationObj.OrganizationName
+                self.AgencyCode = aff.OrganizationObj.OrganizationCode
 class Series(wof_base.BaseSeries):
     def __init__(self, r=None, aff=None,bdate=None,edate=None):
         fa_obj = r.FeatureActionObj
@@ -74,19 +77,22 @@ class Series(wof_base.BaseSeries):
         v_obj = r.VariableObj
         p_obj = r.ProcessingLevelObj
 
-        sf_obj = fa_obj.SamplingFeatureObj
+        # sf_obj = fa_obj.SamplingFeatureObj
         a_obj = fa_obj.ActionObj
         m_obj = a_obj.MethodObj
-        o_obj = m_obj.OrganizationObj
+        # o_obj = m_obj.OrganizationObj
 
         self.SeriesID = r.ResultID
         #self.SiteID = fa_obj.SamplingFeatureID
         #self.SiteCode = sf_obj.SamplingFeatureCode
         #self.SiteName = sf_obj.SamplingFeatureName
 
+
         self.Variable = Variable(v_obj,
                                  r.SampledMediumCV,
-                                 u_obj)
+                                 v_tunit= r.TimeAggregationIntervalUnitsObj,
+                                 v_timeinterval=r.TimeAggregationInterval, v_unit=u_obj,
+                                 aggregationstatisticCV=r.AggregationStatisticCV, actiontypeCV=a_obj.ActionTypeCV)
         #self.VariableID = r.VariableID
         #self.VariableCode = v_obj.VariableCode
         #self.VariableName = v_obj.VariableNameCV
@@ -98,14 +104,14 @@ class Series(wof_base.BaseSeries):
         #self.MethodID = m_obj.MethodID
         #self.MethodDescription = m_obj.MethodDescription
         self.Method = Method(m_obj)
-        self.Organization = o_obj.OrganizationName
-        self.BeginDateTimeUTC = bdate.isoformat() #a_obj.BeginDateTime.isoformat()
-        if a_obj.EndDateTime is not None:
-            self.EndDateTimeUTC = edate.isoformat() #a_obj.EndDateTime.isoformat()
+        self.BeginDateTimeUTC = bdate # .isoformat() #a_obj.BeginDateTime.isoformat()
+        #if a_obj.EndDateTime is not None:
+        self.EndDateTimeUTC = edate #.isoformat() #a_obj.EndDateTime.isoformat()
         self.ValueCount = r.ValueCount
         if aff is not None:
+            if aff.OrganizationObj is not None:
+                self.Organization = aff.OrganizationObj.OrganizationName
             self.Source = Source(aff)
-
 class DataValue(wof_base.BaseDataValue):
 
     def __init__(self,v,aff_obj=None):
@@ -142,19 +148,26 @@ class Unit(wof_base.BaseUnits):
         self.UnitsName = u_obj.UnitsName
         self.UnitsType = u_obj.UnitsTypeCV
         self.UnitsAbbreviation = u_obj.UnitsAbbreviation
+        self.UnitsTypeValidate = False
 
 class Source(wof_base.BaseSource):
     def __init__(self,aff_obj):
         self.SourceID = aff_obj.AffiliationID
-        self.Organization = aff_obj.OrganizationObj.OrganizationName
-        self.OrganizationCode = aff_obj.OrganizationObj.OrganizationCode
-        self.SourceCode = aff_obj.OrganizationObj.OrganizationCode
-        self.SourceDescription = aff_obj.OrganizationObj.OrganizationDescription
-        self.SourceLink = aff_obj.OrganizationObj.OrganizationLink
-        self.ContactName = '%s %s' % (aff_obj.PersonObj.PersonFirstName,aff_obj.PersonObj.PersonLastName)
-        self.Phone = aff_obj.PrimaryPhone
+
+        if aff_obj.OrganizationObj is not None:
+            self.Organization = aff_obj.OrganizationObj.OrganizationName
+            self.SourceCode = self.SourceID
+            self.SourceDescription = aff_obj.OrganizationObj.OrganizationDescription
+            self.SourceLink = aff_obj.OrganizationObj.OrganizationLink
+
+        self.ContactName = '%s %s' % (aff_obj.PersonObj.PersonFirstName,
+                                      aff_obj.PersonObj.PersonLastName)
+
+        if aff_obj.PrimaryPhone is not None:
+            self.Phone = aff_obj.PrimaryPhone
         self.Email = aff_obj.PrimaryEmail
-        self.Address = aff_obj.PrimaryAddress
+        if aff_obj.PrimaryAddress is not None:
+            self.Address = aff_obj.PrimaryAddress
         #self.City = 'San Diego'
         #self.State = 'CA'
         #self.ZipCode = '92122'
