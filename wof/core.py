@@ -21,9 +21,6 @@ from spyne.protocol.xml import XmlDocument
 from spyne.server.http import HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
 
-import sys
-print('sys.path!!!!')
-print(sys.path)
 
 import pytz
 from lxml import etree
