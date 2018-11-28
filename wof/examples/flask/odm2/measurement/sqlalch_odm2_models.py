@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function)
 
 import wof.models as wof_base
+from datetime import datetime, timedelta
 
 class Variable(wof_base.BaseVariable):
 
@@ -14,7 +15,14 @@ class Variable(wof_base.BaseVariable):
         self.VariableCode = variable_key
         self.VariableName = v.VariableNameCV
         self.VariableDescription = v.VariableDefinition
-        self.NoDataValue = v.NoDataValue
+        try:
+            nodvfloat = float(v.NoDataValue)
+            if nodvfloat.is_integer():
+                self.NoDataValue = int(v.NoDataValue)
+            else:
+                self.NoDataValue = v.NoDataValue
+        except:
+            self.NoDataValue = v.NoDataValue
         self.SampleMedium = VarSampleMedium
         self.DataType = v.VariableTypeCV
         self.Speciation = v.SpeciationCV
@@ -104,9 +112,15 @@ class Series(wof_base.BaseSeries):
         #self.MethodID = m_obj.MethodID
         #self.MethodDescription = m_obj.MethodDescription
         self.Method = Method(m_obj)
-        self.BeginDateTimeUTC = bdate # .isoformat() #a_obj.BeginDateTime.isoformat()
+        # self.BeginDateTimeUTC = bdate # .isoformat() #a_obj.BeginDateTime.isoformat()
         #if a_obj.EndDateTime is not None:
-        self.EndDateTimeUTC = edate #.isoformat() #a_obj.EndDateTime.isoformat()
+        # self.EndDateTimeUTC = edate #.isoformat() #a_obj.EndDateTime.isoformat()
+        try:
+            self.EndDateTimeUTC = r.msrv_EndDateTime.isoformat() # + timedelta(hours=r.)
+            self.BeginDateTimeUTC = r.msrv_BeginDateTime.isoformat()
+        except Exception as inst:
+            # print('date error')
+            print(inst)
         self.ValueCount = r.ValueCount
         if aff is not None:
             if aff.OrganizationObj is not None:

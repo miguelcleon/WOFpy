@@ -9,12 +9,6 @@ import urllib
 
 from dateutil.parser import parse
 
-from lxml import etree
-from lxml.etree import XMLParser
-from lxml.etree import XMLSyntaxError
-
-import pytz
-
 from spyne.application import Application
 from spyne.const.http import HTTP_405
 from spyne.error import RequestNotAllowed
@@ -26,6 +20,18 @@ from spyne.protocol.soap.mime import collapse_swa
 from spyne.protocol.xml import XmlDocument
 from spyne.server.http import HttpTransportContext
 from spyne.server.wsgi import WsgiApplication
+
+import sys
+print('sys.path!!!!')
+print(sys.path)
+
+import pytz
+from lxml import etree
+from lxml.etree import XMLParser
+from lxml.etree import XMLSyntaxError
+
+
+
 
 from wof.WofWsdls import WofWSDL_1_0, WofWSDL_1_1
 from wof.apps.spyned_1_0 import TWOFService as wml10

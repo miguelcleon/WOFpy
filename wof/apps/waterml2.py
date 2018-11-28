@@ -1,6 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
 
-import StringIO
+from io import StringIO
 import logging
 import datetime
 import os

@@ -389,7 +389,7 @@ def quote_xml(inStr):
     "Escape markup chars, but do not modify CDATA sections."
     if not inStr:
         return ''
-    s1 = (isinstance(inStr, basestring) and inStr or
+    s1 = (isinstance(inStr, str) and inStr or
           '%s' % inStr)
     s2 = ''
     pos = 0
@@ -413,7 +413,7 @@ def quote_xml_aux(inStr):
 
 
 def quote_attrib(inStr):
-    s1 = (isinstance(inStr, basestring) and inStr or
+    s1 = (isinstance(inStr, str) and inStr or
           '%s' % inStr)
     s1 = s1.replace(u'&', u'&amp;')
     s1 = s1.replace(u'<', u'&lt;')
@@ -826,7 +826,7 @@ class VariableInfoType(GeneratedsSuper):
     superclass = None
     def __init__(self, metadataTime=None, oid=None, variableCode=None, variableName=None, variableDescription=None, valueType=None, dataType=None, generalCategory=None, sampleMedium=None, unit=None, options=None, note=None, related=None, extension=None, noDataValue=None, timeScale=None, speciation=None, categories=None, variableProperty=None):
         self.original_tagname_ = None
-        if isinstance(metadataTime, basestring):
+        if isinstance(metadataTime, str):
             initvalue_ = datetime.datetime.strptime(metadataTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = metadataTime
@@ -1321,7 +1321,7 @@ class QueryInfoType(GeneratedsSuper):
     superclass = None
     def __init__(self, creationTime=None, queryURL=None, criteria=None, note=None, extension=None):
         self.original_tagname_ = None
-        if isinstance(creationTime, basestring):
+        if isinstance(creationTime, str):
             initvalue_ = datetime.datetime.strptime(creationTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = creationTime
@@ -1701,22 +1701,22 @@ class TimePeriodType(GeneratedsSuper):
     superclass = None
     def __init__(self, beginDateTime=None, endDateTime=None, beginDateTimeUTC=None, endDateTimeUTC=None, extensiontype_=None):
         self.original_tagname_ = None
-        if isinstance(beginDateTime, basestring):
+        if isinstance(beginDateTime, str):
             initvalue_ = datetime.datetime.strptime(beginDateTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = beginDateTime
         self.beginDateTime = initvalue_
-        if isinstance(endDateTime, basestring):
+        if isinstance(endDateTime, str):
             initvalue_ = datetime.datetime.strptime(endDateTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = endDateTime
         self.endDateTime = initvalue_
-        if isinstance(beginDateTimeUTC, basestring):
+        if isinstance(beginDateTimeUTC, str):
             initvalue_ = datetime.datetime.strptime(beginDateTimeUTC, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = beginDateTimeUTC
         self.beginDateTimeUTC = initvalue_
-        if isinstance(endDateTimeUTC, basestring):
+        if isinstance(endDateTimeUTC, str):
             initvalue_ = datetime.datetime.strptime(endDateTimeUTC, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = endDateTimeUTC
@@ -1883,7 +1883,7 @@ class TimeSingleType(TimePeriodType):
     def __init__(self, beginDateTime=None, endDateTime=None, beginDateTimeUTC=None, endDateTimeUTC=None, timeSingle=None):
         self.original_tagname_ = None
         super(TimeSingleType, self).__init__(beginDateTime, endDateTime, beginDateTimeUTC, endDateTimeUTC, )
-        if isinstance(timeSingle, basestring):
+        if isinstance(timeSingle, str):
             initvalue_ = datetime.datetime.strptime(timeSingle, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = timeSingle
@@ -3038,7 +3038,7 @@ class ValueSingleVariable(GeneratedsSuper):
         self.methodCode = _cast(None, methodCode)
         self.qualityControlLevelCode = _cast(None, qualityControlLevelCode)
         self.methodID = _cast(int, methodID)
-        if isinstance(metadataTime, basestring):
+        if isinstance(metadataTime, str):
             initvalue_ = datetime.datetime.strptime(metadataTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = metadataTime
@@ -3049,13 +3049,13 @@ class ValueSingleVariable(GeneratedsSuper):
         self.censorCode = _cast(None, censorCode)
         self.accuracyStdDev = _cast(float, accuracyStdDev)
         self.offsetTypeID = _cast(int, offsetTypeID)
-        if isinstance(dateTime, basestring):
+        if isinstance(dateTime, str):
             initvalue_ = datetime.datetime.strptime(dateTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = dateTime
         self.dateTime = initvalue_
         self.offsetTypeCode = _cast(None, offsetTypeCode)
-        if isinstance(dateTimeUTC, basestring):
+        if isinstance(dateTimeUTC, str):
             initvalue_ = datetime.datetime.strptime(dateTimeUTC, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = dateTimeUTC
@@ -7221,7 +7221,7 @@ class SiteInfoType(SourceInfoType):
     def __init__(self, metadataTime=None, oid=None, siteName=None, siteCode=None, timeZoneInfo=None, geoLocation=None, elevation_m=None, verticalDatum=None, note=None, extension=None, altname=None, siteType=None, siteProperty=None):
         self.original_tagname_ = None
         super(SiteInfoType, self).__init__()
-        if isinstance(metadataTime, basestring):
+        if isinstance(metadataTime, str):
             initvalue_ = datetime.datetime.strptime(metadataTime, '%Y-%m-%dT%H:%M:%S')
         else:
             initvalue_ = metadataTime
