@@ -277,8 +277,6 @@ class Odm2Dao(BaseDao):
             w_r.Variable.SampleMedium = self.get_match('samplemedium', w_r.Variable.SampleMedium)
             w_r.SampleMedium = w_r.Variable.SampleMedium
             r_arr.append(w_r)
-        print('HERE') h
-        print(r_arr)
         return r_arr
 
     def get_series_by_sitecode_and_varcode(self, site_code, var_code):
