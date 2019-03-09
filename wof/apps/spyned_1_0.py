@@ -1,6 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
 
-import StringIO
+from io import StringIO
 import logging
 
 from spyne.decorator import rpc
@@ -38,7 +38,7 @@ def TWOFService(wof_inst, T, T_name):
                 logging.debug(site)
                 logging.debug(siteArg)
                 siteResponse = wof_inst.create_get_site_response(siteArg)
-                outStream = StringIO.StringIO()
+                outStream = StringIO()
                 siteResponse.export(outStream, 0, name_="sitesResponse",
                                     namespacedef_=NSDEF)
                 return outStream.getvalue()

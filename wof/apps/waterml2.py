@@ -89,7 +89,7 @@ def TWOFService(wof_inst,T, T_name):
 #full format: %Y-%m-%dT%H:%M:%S.%f%z
 
 def isoformat(value, format='%Y-%m-%dT%H:%M:%S%z'):
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         try:
             value = parse(value)
         except:

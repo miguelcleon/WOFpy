@@ -180,7 +180,7 @@ class SwisDao(BaseDao):
         source.Phone = self.contact_info['phone']
         source.Email = self.contact_info['email']
         source.Organization = self.contact_info['organization']
-        source.SourceLink = self.contact_info['link']
+        # source.SourceLink = self.contact_info['link']
         source.SourceDescription = self.contact_info['description']
         source.Address = self.contact_info['address']
         source.City = self.contact_info['city']

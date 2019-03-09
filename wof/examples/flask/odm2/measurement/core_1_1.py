@@ -232,7 +232,7 @@ class WOF_1_1(object):
         if isinstance(value, bool):
             return value
 
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             value = False
             return value
 
@@ -618,7 +618,8 @@ class WOF_1_1(object):
             sourceCode=sourceResult.SourceCode,
             organization=sourceResult.Organization,
             sourceDescription=sourceResult.SourceDescription,
-            sourceLink=sourceResult.SourceLink)
+            #sourceLink=sourceResult.SourceLink)
+            citation=sourceResult.Citation)
 
         contactInfo = self.create_contact_info_element(sourceResult)
 

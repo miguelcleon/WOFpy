@@ -166,7 +166,7 @@ class BaseSource(object):
     SourceCode = None
     Organization = None
     SourceDescription = None
-    SourceLink = None
+    # SourceLink = None
     ContactName = None
     Phone = None
     Email = None

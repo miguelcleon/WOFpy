@@ -172,7 +172,7 @@ class Source(wof_base.BaseSource):
             self.Organization = aff_obj.OrganizationObj.OrganizationName
             self.SourceCode = self.SourceID
             self.SourceDescription = aff_obj.OrganizationObj.OrganizationDescription
-            self.SourceLink = aff_obj.OrganizationObj.OrganizationLink
+            # self.SourceLink = aff_obj.OrganizationObj.OrganizationLink
 
         self.ContactName = '%s %s' % (aff_obj.PersonObj.PersonFirstName,
                                       aff_obj.PersonObj.PersonLastName)
@@ -182,6 +182,7 @@ class Source(wof_base.BaseSource):
         self.Email = aff_obj.PrimaryEmail
         if aff_obj.PrimaryAddress is not None:
             self.Address = aff_obj.PrimaryAddress
+        self.Citation = self.ContactName + ', ' + self.Organization + ', ' +  aff_obj.OrganizationObj.OrganizationLink
         #self.City = 'San Diego'
         #self.State = 'CA'
         #self.ZipCode = '92122'

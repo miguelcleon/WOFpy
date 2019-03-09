@@ -427,8 +427,8 @@ class WOF(object):
         source = WaterML.SourceType(
             sourceID=sourceResult.SourceID,
             Organization=sourceResult.Organization,
-            SourceDescription=sourceResult.SourceDescription,
-            SourceLink=sourceResult.SourceLink)
+            SourceDescription=sourceResult.SourceDescription)
+            #SourceLink=sourceResult.SourceLink
 
         contactInfo = self.create_contact_info_element(sourceResult)
 

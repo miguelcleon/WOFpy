@@ -629,7 +629,6 @@
           <s:element minOccurs="0" maxOccurs="1" name="SourceDescription" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="Metadata" type="s1:MetaDataType" />
           <s:element minOccurs="0" maxOccurs="1" name="ContactInformation" type="s1:ContactInformationType" />
-          <s:element minOccurs="0" maxOccurs="1" name="SourceLink" type="s:anyURI" />
         </s:sequence>
         <s:attribute name="sourceID" type="s:int" />
       </s:complexType>

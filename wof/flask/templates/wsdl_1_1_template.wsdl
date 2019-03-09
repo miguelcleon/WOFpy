@@ -610,7 +610,6 @@
           <s:element minOccurs="0" maxOccurs="1" name="sourceDescription" type="s:string" />
           <s:element minOccurs="0" maxOccurs="1" name="metadata" type="s1:MetaDataType" />
           <s:element minOccurs="0" maxOccurs="unbounded" name="contactInformation" type="s1:ContactInformationType" />
-          <s:element minOccurs="0" maxOccurs="unbounded" name="sourceLink" type="s:anyURI" />
           <s:element minOccurs="0" maxOccurs="1" name="citation" type="s:string" />
         </s:sequence>
         <s:attribute name="sourceID" type="s:int" />

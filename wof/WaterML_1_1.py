@@ -4189,10 +4189,10 @@ class SourceType(GeneratedsSuper):
             self.contactInformation = []
         else:
             self.contactInformation = contactInformation
-        if sourceLink is None:
-            self.sourceLink = []
-        else:
-            self.sourceLink = sourceLink
+        # if sourceLink is None:
+        #     self.sourceLink = []
+        # else:
+        #     self.sourceLink = sourceLink
         self.citation = citation
     def factory(*args_, **kwargs_):
         if SourceType.subclass:
@@ -4213,11 +4213,11 @@ class SourceType(GeneratedsSuper):
     def add_contactInformation(self, value): self.contactInformation.append(value)
     def insert_contactInformation_at(self, index, value): self.contactInformation.insert(index, value)
     def replace_contactInformation_at(self, index, value): self.contactInformation[index] = value
-    def get_sourceLink(self): return self.sourceLink
-    def set_sourceLink(self, sourceLink): self.sourceLink = sourceLink
-    def add_sourceLink(self, value): self.sourceLink.append(value)
-    def insert_sourceLink_at(self, index, value): self.sourceLink.insert(index, value)
-    def replace_sourceLink_at(self, index, value): self.sourceLink[index] = value
+    # def get_sourceLink(self): return self.sourceLink
+    # def set_sourceLink(self, sourceLink): self.sourceLink = sourceLink
+    # def add_sourceLink(self, value): self.sourceLink.append(value)
+    # def insert_sourceLink_at(self, index, value): self.sourceLink.insert(index, value)
+    # def replace_sourceLink_at(self, index, value): self.sourceLink[index] = value
     def get_citation(self): return self.citation
     def set_citation(self, citation): self.citation = citation
     def get_sourceID(self): return self.sourceID
@@ -4234,7 +4234,7 @@ class SourceType(GeneratedsSuper):
             self.sourceDescription is not None or
             self.metadata is not None or
             self.contactInformation or
-            self.sourceLink or
+            # self.sourceLink or
             self.citation is not None
         ):
             return True
@@ -4282,9 +4282,9 @@ class SourceType(GeneratedsSuper):
             if contactInformation_ is not None:
                 contactInformation_.export(outfile, level, namespace_, name_='contactInformation', pretty_print=pretty_print)
         #for sourceLink_ in self.sourceLink:
-        if self.sourceLink is not None:
-            showIndent(outfile, level, pretty_print)
-            outfile.write(u'<%ssourceLink>%s</%ssourceLink>%s' % (namespace_, self.gds_format_string(quote_xml(self.sourceLink), input_name='sourceLink'), namespace_, eol_))
+        #if self.sourceLink is not None:
+        #    showIndent(outfile, level, pretty_print)
+        #    outfile.write(u'<%ssourceLink>%s</%ssourceLink>%s' % (namespace_, self.gds_format_string(quote_xml(self.sourceLink), input_name='sourceLink'), namespace_, eol_))
 
         if self.citation is not None:
             showIndent(outfile, level, pretty_print)
@@ -4329,10 +4329,10 @@ class SourceType(GeneratedsSuper):
             obj_.build(child_)
             self.contactInformation.append(obj_)
             obj_.original_tagname_ = 'contactInformation'
-        elif nodeName_ == 'sourceLink':
-            sourceLink_ = child_.text
-            sourceLink_ = self.gds_validate_string(sourceLink_, node, 'sourceLink')
-            self.sourceLink.append(sourceLink_)
+        #elif nodeName_ == 'sourceLink':
+        #    sourceLink_ = child_.text
+        #    sourceLink_ = self.gds_validate_string(sourceLink_, node, 'sourceLink')
+        #    self.sourceLink.append(sourceLink_)
         elif nodeName_ == 'citation':
             citation_ = child_.text
             citation_ = self.gds_validate_string(citation_, node, 'citation')

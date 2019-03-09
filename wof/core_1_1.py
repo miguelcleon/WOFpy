@@ -89,7 +89,8 @@ class WOF_1_1(object):
         self.link = config.link
 
     def get_site_code(self, siteArg):
-
+        if siteArg is None:
+            return None
         if ':' in siteArg:
             networkname, siteCode = siteArg.split(':', 1)
             networkname = networkname.lower()
@@ -222,7 +223,7 @@ class WOF_1_1(object):
         if isinstance(value, bool):
             return value
 
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             value = False
             return value
 
@@ -607,8 +608,8 @@ class WOF_1_1(object):
             sourceID=sourceResult.SourceID,
             sourceCode=sourceResult.SourceCode,
             organization=sourceResult.Organization,
-            sourceDescription=sourceResult.SourceDescription,
-            sourceLink=sourceResult.SourceLink)
+            sourceDescription=sourceResult.SourceDescription) # ,
+            # sourceLink=sourceResult.SourceLink)
 
         contactInfo = self.create_contact_info_element(sourceResult)
 
@@ -806,11 +807,11 @@ class WOF_1_1(object):
         try:
             beginDateTime = dateutil.parser.parse(beginDateTime)
         except Exception as inst:
-            logging.warn('bad datetime conversion on beginDateTime:' + inst.message)  # noqa
+            logging.warning('bad datetime conversion on beginDateTime:' + str(inst))  # noqa
         try:
             endDateTime = dateutil.parser.parse(endDateTime)
         except Exception as inst:
-            logging.warn('bad datetime conversion on endDateTime:' + inst.message)  # noqa
+            logging.warning('bad datetime conversion on endDateTime:' + str(inst))  # noqa
 
         # TimeInterval.
         if beginDateTime is None:

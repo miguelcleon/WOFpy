@@ -50,40 +50,59 @@ class Odm2Dao(BaseDao):
             if term in v:
                 return k
         return term
+
     def get_all_sites(self):
-        s_Arr = []
-        # s_rArr = self.db_session.query(odm2_models.MeasurementResults,odm2_models.Sites).\
-        #     distinct(odm2_models.Sites.SamplingFeatureID).\
-        #     join(odm2_models.FeatureActions).\
-        #     join(odm2_models.Specimens).\
-        #     filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
-        #           odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
-        #            odm2_models.Sites.SamplingFeatureID == odm2_models.RelatedFeatures.RelatedFeatureID).all()
-        s_rArr = self.db_session.query(odm2_models.Sites).\
-            join(odm2_models.FeatureActions).\
-            join(odm2_models.MeasurementResults).\
+        """Get all wof sites from odm2 database.
+
+        :return: List of WOF Sites
+        """
+        self.db_check()
+        s_rArr = self.db_session.query(odm2_models.Sites). \
+            join(odm2_models.FeatureActions). \
+            join(odm2_models.MeasurementResults). \
             filter(odm2_models.FeatureActions.SamplingFeatureID == odm2_models.Sites.SamplingFeatureID,
-                 odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID).distinct()
-        # print('site count: ' + str(len(s_rArr)))
+                   odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID).distinct()  # noqa
+
+        s_Arr = []
         for s_r in s_rArr:
             s = model.Site(s_r)
             s_Arr.append(s)
-
         return s_Arr
 
     def get_site_by_code(self, site_code):
+        """Get wof site from odm2 database by site code.
+
+        :param site_code: Site Code Ex. 'USU-LBR-Mendon'
+        :return: WOF Site
+        """
+        self.db_check()
         w_s = None
         try:
-            s = self.db_session.query(odm2_models.Sites).\
+            s = self.db_session.query(odm2_models.Sites). \
                 filter(odm2_models.Sites.SamplingFeatureCode == site_code).one()
+
+            aff = self.db_session.query(odm2_models.Affiliations). \
+                join(odm2_models.ActionBy). \
+                join(odm2_models.Actions). \
+                join(odm2_models.FeatureActions). \
+                join(odm2_models.Sites). \
+                filter(odm2_models.Sites.SamplingFeatureCode == s.SamplingFeatureCode).first()
+        # filter(odm2_models.ActionBy.IsActionLead == True) : may be too strict,
+        # removed on 8/14/17
         except:
             s = None
+            aff = None
         if s is not None:
-            w_s = model.Site(s)
-
+            w_s = model.Site(s, aff)
         return w_s
 
     def get_sites_by_codes(self, site_codes_arr):
+        """Get wof sites from odm2 database by a list of site codes.
+
+        :param site_codes_arr: List of Site Codes Ex. ['USU-LBR-Mendon', 'USU-LBR-Mendon2']
+        :return: List of WOF Sites
+        """
+        self.db_check()
         s_arr = []
         for site_code in site_codes_arr:
             w_s = self.get_site_by_code(site_code)
@@ -91,31 +110,31 @@ class Odm2Dao(BaseDao):
                 s_arr.append(w_s)
         return s_arr
 
-    def get_sites_by_box(self, west,south,east,north):
+    def get_sites_by_box(self, west, south, east, north):
+        """Get wof sites from odm2 database by a bounding box.
+
+        :param north: north - ymax - latitude
+        :param south: south - ymin - latitude
+        :param west: west - xmin - longitude
+        :param east: east - xmax - longitude
+        :return: List of WOF Sites
         """
-        north - ymax - latitude
-        south - ymin - latitude
-        west - xmin - longitude
-        east - xmax - longitude
-        """
-        s_Arr = []
-        s_rArr = self.db_session.query(odm2_models.MeasurementResults,
-                                       odm2_models.Sites).\
-            distinct(odm2_models.Sites.SamplingFeatureID).\
-            join(odm2_models.FeatureActions).\
-            join(odm2_models.Specimens).\
-            filter(odm2_models.Specimens.SamplingFeatureID == odm2_models.RelatedFeatures.SamplingFeatureID,
-                   odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,
-                   odm2_models.Sites.SamplingFeatureID == odm2_models.RelatedFeatures.RelatedFeatureID,
+        self.db_check()
+        s_rArr = self.db_session.query(odm2_models.Sites). \
+            join(odm2_models.FeatureActions). \
+            join(odm2_models.MeasurementResults). \
+            filter(odm2_models.FeatureActions.SamplingFeatureID == odm2_models.Sites.SamplingFeatureID,
+                   odm2_models.MeasurementResults.FeatureActionID == odm2_models.FeatureActions.FeatureActionID,  # noqa
                    odm2_models.Sites.Latitude >= south,
                    odm2_models.Sites.Latitude <= north,
                    odm2_models.Sites.Longitude >= west,
-                   odm2_models.Sites.Longitude <= east).all()
+                   odm2_models.Sites.Longitude <= east).distinct()
+        s_Arr = []
         for s_r in s_rArr:
-            s = model.Site(s_r.Sites)
+            s = model.Site(s_r)
             s_Arr.append(s)
-
         return s_Arr
+
 
     def get_variable_params(self, var_code):
         """
@@ -459,13 +478,25 @@ class Odm2Dao(BaseDao):
         return m_arr
 
     def get_source_by_id(self, source_id):
-        aff = self.db_session.query(odm2_models.Affiliations).\
+        """Get wof source from odm2 database by Affiliation ID.
+
+        :param source_id: Affiliation ID.
+        :return: A WOF Source
+        """
+        self.db_check()
+        aff = self.db_session.query(odm2_models.Affiliations). \
             filter(odm2_models.Affiliations.AffiliationID == source_id).one()
         w_aff = model.Source(aff)
         return w_aff
 
     def get_sources_by_ids(self, source_id_arr):
-        aff = self.db_session.query(odm2_models.Affiliations).\
+        """Get wof source from odm2 database by a list of Affiliation ID's.
+
+        :param source_id_arr: List of Affiliation ID.
+        :return: List WOF Source
+        """
+        self.db_check()
+        aff = self.db_session.query(odm2_models.Affiliations). \
             filter(odm2_models.Affiliations.AffiliationID.in_(source_id_arr)).all()
         aff_arr = []
         for i in range(len(aff)):
@@ -474,19 +505,32 @@ class Odm2Dao(BaseDao):
         return aff_arr
 
     def get_qualcontrollvl_by_id(self, qual_control_lvl_id):
-        pl = self.db_session.query(odm2_models.ProcessingLevels)\
+        """Get wof Quality Control Level from odm2 database by Processing Level ID.
+
+        :param qual_control_lvl_id: Processing Level ID.
+        :return: A WOF Quality Control Level
+        """
+        self.db_check()
+        pl = self.db_session.query(odm2_models.ProcessingLevels) \
             .filter(odm2_models.ProcessingLevels.ProcessingLevelID == qual_control_lvl_id).first()
         w_pl = model.QualityControlLevel(pl)
         return w_pl
 
     def get_qualcontrollvls_by_ids(self, qual_control_lvl_id_arr):
-        pl = self.db_session.query(odm2_models.ProcessingLevels)\
+        """Get wof Quality Control Level from odm2 database by a list of Processing Level ID's.
+
+        :param qual_control_lvl_id_arr: List Processing Level ID.
+        :return: List of WOF Quality Control Level
+        """
+        self.db_check()
+        pl = self.db_session.query(odm2_models.ProcessingLevels) \
             .filter(odm2_models.ProcessingLevels.ProcessingLevelID.in_(qual_control_lvl_id_arr)).all()
         pl_arr = []
         for i in range(len(pl)):
             w_pl = model.QualityControlLevel(pl[i])
             pl_arr.append(w_pl)
         return pl_arr
+
 def _get_msrv_enddatetimes(db_session, resultids):
     """Extracts Latest DateTime from Timeseries Result Values.
 

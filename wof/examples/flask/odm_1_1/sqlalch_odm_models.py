@@ -136,7 +136,7 @@ class Source(Base, wof_base.BaseSource):
     SourceID = Column(Integer, primary_key=True)
     Organization = Column(String)
     SourceDescription = Column(String)
-    SourceLink = Column(String)
+    # SourceLink = Column(String)
     ContactName = Column(String)
     Phone = Column(String)
     Email = Column(String)
